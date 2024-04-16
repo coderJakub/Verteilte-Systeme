@@ -113,8 +113,13 @@ class ApfelModel {
         this.xmax = xmax;
         this.ymin = ymin;
         this.ymax = ymax;
-
-        // TODO
+        
+        for(int y=ymin; y<ymax; y++){
+            double c_im = ymin+(ymax-ymin)*y/ypi;
+            for(int x=xmin; x<xmax; x++){
+                
+            }
+        }
         return bild;
     }
 }
