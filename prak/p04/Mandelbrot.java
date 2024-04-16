@@ -10,7 +10,6 @@ public class Mandelbrot {
         ApfelView v = new ApfelView(p);
         ApfelModel m = new ApfelModel(v);
         p.setModelAndView(m, v);
-        p.apfelVideo();
     }
 }
 
@@ -19,10 +18,10 @@ class ApfelPresenter implements ActionListener {
     protected ApfelModel m;
     protected ApfelView v;
 
-    double xmin = -1.666, xmax = 1, ymin = -1, ymax = 1; // Parameter des Ausschnitts
-    double cr = -0.743643887035151, ci = 0.131825904205330;
-    double zoomRate = 1.5;
-    int xpix = 640, ypix = 480;
+    double xmin = -1.666, xmax = 1, ymin = -1, ymax = 1; // Parameter des aktuellen Ausschnitts
+    double cr = -0.743643887035151, ci = 0.131825904205330; //c = cr (Realteil)+ ci*i (Imaginärteil)
+    double zoomRate = 1.5; // Zoomfaktor mit welchem ein Ausschnitt vergrößert wird
+    int xpix = 640, ypix = 480; // Größe des Bildes
 
     public void setModelAndView(ApfelModel m, ApfelView v) {
         this.m = m;
@@ -33,10 +32,12 @@ class ApfelPresenter implements ActionListener {
 
     /** Komplette Berechnung und Anzeige aller Bilder */
     void apfelVideo() {
-        // TODO
+        Color[][] bild= m.apfel_bild(xmin, xmax, ymin, ymax);
+        v.update(bild);
     }
 
     public void actionPerformed(ActionEvent e){
+        apfelVideo();
         System.out.println("click");
     } 
 }
@@ -80,6 +81,15 @@ class ApfelView {
         f.setVisible(true);
     }
 
+    public void update(Color[][] bild) {
+        for (int x = 0; x < xpix; x++) {
+            for (int y = 0; y < ypix; y++) {
+                if(bild[x][y]!=null)image.setRGB(x, y, bild[x][y].getRGB());
+            }
+        }
+        ap.repaint();
+    }
+
     class ApfelPanel extends JPanel {
         public void paintComponent(Graphics g) {
             super.paintComponent(g);
@@ -114,12 +124,33 @@ class ApfelModel {
         this.ymin = ymin;
         this.ymax = ymax;
         
-        for(int y=ymin; y<ymax; y++){
-            double c_im = ymin+(ymax-ymin)*y/ypi;
-            for(int x=xmin; x<xmax; x++){
-                
+        for (int x = 0; x < xpix; x++) {
+            for (int y = 0; y < ypix; y++) {
+                double cr = xmin + (xmax - xmin) * x / xpix;
+                double ci = ymin + (ymax - ymin) * y / ypix;
+                bild[x][y] = calc(cr, ci);
             }
         }
+
         return bild;
+    }
+
+    /** Berechne die Farbe eines Punktes */
+    Color calc(double cr, double ci) {
+        double zr = 0, zi = 0;
+        int MAX_ITER = 100;
+        int n = 0;
+        while (n < MAX_ITER && zr * zr + zi * zi < 4) {
+            double zr1 = zr * zr - zi * zi + cr;
+            zi = 2 * zr * zi + ci;
+            zr = zr1;
+            n++;
+        }
+        return getColor(n);
+    }
+
+    Color getColor(int n) {
+        if (n == 100) return Color.BLACK;
+        return Color.getHSBColor((float) n / 100, 1, 1); //Farbe abhängig von n: n=0 -> blau, n=100 -> schwarz
     }
 }
