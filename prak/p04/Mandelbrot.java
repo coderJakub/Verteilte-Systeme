@@ -10,6 +10,7 @@ public class Mandelbrot {
         ApfelView v = new ApfelView(p);
         ApfelModel m = new ApfelModel(v);
         p.setModelAndView(m, v);
+        p.apfelVideo();
     }
 }
 
@@ -32,13 +33,22 @@ class ApfelPresenter implements ActionListener {
 
     /** Komplette Berechnung und Anzeige aller Bilder */
     void apfelVideo() {
-        Color[][] bild= m.apfel_bild(xmin, xmax, ymin, ymax);
-        v.update(bild);
+        Color[][] bild;
+        for(int i=0;i<65;i++){
+            System.out.println(i); 
+            bild= m.apfel_bild(xmin, xmax, ymin, ymax);
+            v.update(bild);
+            double xdim = xmax - xmin;
+            double ydim = ymax - ymin;
+            xmin = cr - xdim / 2 / zoomRate;
+            xmax = cr + xdim / 2 / zoomRate;
+            ymin = ci - ydim / 2 / zoomRate;
+            ymax = ci + ydim / 2 / zoomRate;
+        }
     }
 
     public void actionPerformed(ActionEvent e){
         apfelVideo();
-        System.out.println("click");
     } 
 }
 
@@ -69,7 +79,7 @@ class ApfelView {
 
         sb.addActionListener(p);
         //sp.setBackground(Color.green);
-        ap.setBackground(Color.blue);
+        //ap.setBackground(Color.blue);
         sp.add(sb);
         sp.add(tf1);
         sp.add(tf2);
@@ -82,6 +92,7 @@ class ApfelView {
     }
 
     public void update(Color[][] bild) {
+        System.out.println("update image");
         for (int x = 0; x < xpix; x++) {
             for (int y = 0; y < ypix; y++) {
                 if(bild[x][y]!=null)image.setRGB(x, y, bild[x][y].getRGB());
@@ -135,10 +146,10 @@ class ApfelModel {
         return bild;
     }
 
+    int MAX_ITER = 1000;
     /** Berechne die Farbe eines Punktes */
     Color calc(double cr, double ci) {
         double zr = 0, zi = 0;
-        int MAX_ITER = 100;
         int n = 0;
         while (n < MAX_ITER && zr * zr + zi * zi < 4) {
             double zr1 = zr * zr - zi * zi + cr;
@@ -150,7 +161,7 @@ class ApfelModel {
     }
 
     Color getColor(int n) {
-        if (n == 100) return Color.BLACK;
-        return Color.getHSBColor((float) n / 100, 1, 1); //Farbe abhängig von n: n=0 -> blau, n=100 -> schwarz
+        if (n == MAX_ITER) return Color.BLACK;
+        return Color.getHSBColor((float) n / MAX_ITER, 1, 1); //Farbe abhängig von n: n=0 -> blau, n=100 -> schwarz
     }
 }
