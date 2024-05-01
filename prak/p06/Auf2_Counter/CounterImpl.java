@@ -13,6 +13,10 @@ public class CounterImpl extends UnicastRemoteObject implements Counter {
         return ++count;
     }
 
+    public synchronized int get() throws RemoteException {
+        return count;
+    }
+
     public synchronized int dec() throws RemoteException {
         System.out.println("Counter gets decremented.");
         return --count;
